@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { connection } from "next/server";
+import { getContent } from "@/lib/content";
 import Hero from "@/components/hero";
 import CardArt from "@/components/card-art";
 import AddButton from "@/components/add-button";
@@ -37,38 +37,35 @@ function Grid({ id, title, items }: { id: string; title: string; items: Product[
   );
 }
 
-const TICKER = ["Free proofs before print", "Bulk discounts from 50 cards", "Ships in 3–5 working days", "Staff badges", "Student IDs", "Visitor passes", "Prop cards (clearly marked)"];
-
-async function Catalog() {
-  await connection(); // render per request so catalogue edits show up immediately
+async function Catalog({ c }: { c: Record<string, string> }) {
   const all = await products();
   return (
     <>
       {all.length === 0 && <p className="max-w-6xl mx-auto px-4 pt-12">Products are loading soon. (Connect Supabase and run the migration.)</p>}
-      <Grid id="badges" title="Organization badges & IDs" items={all.filter((p) => p.kind === "badge")} />
-      <Grid id="props" title="Prop cards (fictional, clearly marked)" items={all.filter((p) => p.kind === "prop")} />
+      <Grid id="badges" title={c.badges_title} items={all.filter((p) => p.kind === "badge")} />
+      <Grid id="props" title={c.props_title} items={all.filter((p) => p.kind === "prop")} />
     </>
   );
 }
 
-function CatalogSkeleton() {
+// Request-time render so admin edits show immediately.
+async function Page() {
+  const c = await getContent();
+  const ticker = c.ticker.split(/\r?\n/).map((t) => t.trim()).filter(Boolean);
+  const copy = [1, 2, 3].map((n) => ({ h: c[`hero${n}_title`], s: c[`hero${n}_sub`], cta: c[`hero${n}_cta`], image: c[`hero${n}_image`] }));
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5" aria-busy>
-      {[0, 1, 2].map((i) => <div key={i} className="skeleton rounded-2xl h-64" />)}
-    </div>
+    <>
+      <Hero copy={copy} />
+      <div className="marquee overflow-hidden bg-amber text-ink font-bold py-3" aria-hidden>
+        <div className="marquee-track flex w-max gap-10 whitespace-nowrap">
+          {[...ticker, ...ticker].map((t, i) => <span key={i}>✦ {t}</span>)}
+        </div>
+      </div>
+      <Catalog c={c} />
+    </>
   );
 }
 
 export default function Home() {
-  return (
-    <>
-      <Hero />
-      <div className="marquee overflow-hidden bg-amber text-ink font-bold py-3" aria-hidden>
-        <div className="marquee-track flex w-max gap-10 whitespace-nowrap">
-          {[...TICKER, ...TICKER].map((t, i) => <span key={i}>✦ {t}</span>)}
-        </div>
-      </div>
-      <Suspense fallback={<CatalogSkeleton />}><Catalog /></Suspense>
-    </>
-  );
+  return <Suspense fallback={<div className="skeleton h-[60vh]" />}><Page /></Suspense>;
 }

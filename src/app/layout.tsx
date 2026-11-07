@@ -6,6 +6,7 @@ import { CartProvider } from "@/components/cart";
 import Header from "@/components/header";
 import Ambient from "@/components/ambient";
 import Reveal from "@/components/reveal";
+import Footer from "@/components/footer";
 
 const display = Bricolage_Grotesque({ variable: "--font-display", subsets: ["latin"] });
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
@@ -27,13 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Ambient />
           <Header />
           <main className="flex-1 relative z-10">{children}</main>
-          <footer className="relative z-10 bg-navy text-white/80 mt-16 py-10 px-4 text-sm">
-            <div className="max-w-6xl mx-auto space-y-2">
-              <p className="font-display text-xl text-white">BadgeWorks</p>
-              <p>Prop cards are novelty items for film, games and cosplay. They carry a permanent &ldquo;PROP – NOT A GOVERNMENT ID&rdquo; mark and use fictional issuers only.</p>
-              <p>We never produce government-issued identity documents.</p>
-            </div>
-          </footer>
+          <Suspense fallback={null}><Footer /></Suspense>
         </CartProvider>
         <Suspense fallback={null}><Reveal /></Suspense>
       </body>

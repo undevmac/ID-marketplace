@@ -11,6 +11,7 @@ export default function Header() {
   const [off, setOff] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read saved pref after mount
     setOff(document.documentElement.dataset.motion === "off");
     let t = 0;
     const on = () => {

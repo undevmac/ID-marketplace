@@ -2,17 +2,22 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-const SLIDES = [
-  { h: "Badges your team will actually wear", s: "Staff ID cards printed on durable PVC, from 1 card.", href: "/#badges", cta: "Shop badges", bg: "from-navy to-navy2" },
-  { h: "Student IDs, ready for the term", s: "Photo cards with student numbers, barcodes or QR.", href: "/#badges", cta: "Student IDs", bg: "from-navy2 to-indigo-700" },
-  { h: "Props for film, games & cosplay", s: "Fictional issuers. Always marked PROP – NOT A GOVERNMENT ID.", href: "/#props", cta: "See props", bg: "from-purple-800 to-fuchsia-600" },
+// Look is fixed here; words and images come from the admin-editable content.
+const STYLE = [
+  { href: "/#badges", bg: "from-navy to-navy2" },
+  { href: "/#badges", bg: "from-navy2 to-indigo-700" },
+  { href: "/#props", bg: "from-purple-800 to-fuchsia-600" },
 ];
+export type Copy = { h: string; s: string; cta: string; image: string };
 const MS = 6000;
 
-export default function Hero() {
+export default function Hero({ copy }: { copy: Copy[] }) {
+  const SLIDES = STYLE.map((st, n) => ({ ...st, ...copy[n] }));
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const track = useRef<HTMLDivElement>(null);
+
+  const go = (n: number) => { setI(n); track.current?.scrollTo({ left: n * track.current.clientWidth, behavior: "smooth" }); };
 
   // Auto-advance; progress bar is a CSS animation re-keyed per slide.
   useEffect(() => {
@@ -21,7 +26,6 @@ export default function Hero() {
     return () => clearTimeout(t);
   });
 
-  const go = (n: number) => { setI(n); track.current?.scrollTo({ left: n * track.current.clientWidth, behavior: "smooth" }); };
   // Swipe (native scroll-snap) -> sync active slide.
   const onScroll = () => { const t = track.current!; const n = Math.round(t.scrollLeft / t.clientWidth); if (n !== i) setI(n); };
 
@@ -32,7 +36,11 @@ export default function Hero() {
         {SLIDES.map((s, n) => (
           <div key={n} role="group" aria-roledescription="slide" aria-label={`${n + 1} of ${SLIDES.length}`} id={`slide-${n}`}
             className={`snap-center shrink-0 w-full h-[70vh] min-h-[420px] max-h-[620px] relative overflow-hidden text-white ${n === i ? "slide-active" : ""}`}>
-            <div className={`kb absolute inset-0 bg-gradient-to-br ${s.bg}`} />
+            <div className={`kb absolute inset-0 bg-gradient-to-br ${s.bg}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {s.image && <img src={s.image} alt="" className="w-full h-full object-cover" loading={n ? "lazy" : "eager"} />}
+              {s.image && <div className="absolute inset-0 bg-navy/55" />}
+            </div>
             <div className="relative max-w-6xl mx-auto h-full px-4 flex flex-col justify-center gap-4 stagger">
               <h1 style={{ "--i": 0 } as React.CSSProperties} className="font-display font-extrabold text-4xl sm:text-6xl max-w-2xl leading-tight">{s.h}</h1>
               <p style={{ "--i": 1 } as React.CSSProperties} className="text-lg max-w-xl text-white/85">{s.s}</p>

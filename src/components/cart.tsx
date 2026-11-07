@@ -13,6 +13,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [bump, setBump] = useState(0); // unique key to retrigger cart-icon animation
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from localStorage after mount
     try { setLines(JSON.parse(localStorage.cart || "[]")); } catch {}
   }, []);
   const save = (l: Line[]) => { setLines(l); try { localStorage.cart = JSON.stringify(l); } catch {} };
