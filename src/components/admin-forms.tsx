@@ -20,9 +20,8 @@ export function SaveForm({ action, children, label = "Save changes", className =
   );
 }
 
-// Pick a file -> upload to Storage -> hidden input holds the public URL.
-export function ImageField({ name, label, defaultValue }: { name: string; label: string; defaultValue: string }) {
-  const [url, setUrl] = useState(defaultValue);
+// Controlled uploader: pick a file -> upload to Storage -> onChange(publicUrl).
+export function ImageInput({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
@@ -37,22 +36,32 @@ export function ImageField({ name, label, defaultValue }: { name: string; label:
     const { error } = await sb.storage.from("site").uploadToSignedUrl(r.path, r.token, f);
     setBusy(false);
     if (error) return setErr("Upload failed.");
-    setUrl(r.url);
+    onChange(r.url);
   }
 
   return (
     <div className="space-y-2">
       <span className="block font-medium">{label}</span>
-      <input type="hidden" name={name} value={url} />
-      {url ? <img src={url} alt="" className="h-28 rounded-lg object-cover border" /> : <div className="h-28 w-48 rounded-lg border border-dashed grid place-items-center text-sm text-black/50">No image</div>}
+      {value ? <img src={value} alt="" className="h-28 rounded-lg object-cover border" /> : <div className="h-28 w-48 rounded-lg border border-dashed grid place-items-center text-sm text-black/50">No image</div>}
       <div className="flex gap-2 items-center flex-wrap">
         <label className="min-h-11 px-4 grid place-items-center rounded-full bg-amber font-bold cursor-pointer">
-          {busy ? "Uploading…" : url ? "Replace image" : "Upload image"}
+          {busy ? "Uploading…" : value ? "Replace image" : "Upload image"}
           <input type="file" accept="image/*" className="sr-only" disabled={busy} onChange={(e) => onFile(e.target.files?.[0])} />
         </label>
-        {url && <button type="button" onClick={() => setUrl("")} className="min-h-11 px-3 underline">Remove</button>}
+        {value && <button type="button" onClick={() => onChange("")} className="min-h-11 px-3 underline">Remove</button>}
         {err && <span role="alert" className="text-red-700">{err}</span>}
       </div>
     </div>
   );
+}
+
+// Same, for plain <form> posts: keeps the URL in a hidden input.
+export function ImageField({ name, label, defaultValue }: { name: string; label: string; defaultValue: string }) {
+  const [url, setUrl] = useState(defaultValue);
+  return <><input type="hidden" name={name} value={url} /><ImageInput value={url} onChange={setUrl} label={label} /></>;
+}
+
+// Submit button that asks first (for destructive actions).
+export function ConfirmButton({ label, message, className = "" }: { label: string; message: string; className?: string }) {
+  return <button className={className} onClick={(e) => { if (!confirm(message)) e.preventDefault(); }}>{label}</button>;
 }

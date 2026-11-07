@@ -61,3 +61,6 @@ main { animation: pageIn .35s var(--ease); }
 }
 html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="off"] *::after { animation: none !important; transition: none !important; }
 html[data-motion="off"].js .reveal { opacity: 1; transform: none; }
+
+@keyframes drift { to { transform: translateX(-50%); } }
+.footer-wave { animation: drift 14s linear infinite; }

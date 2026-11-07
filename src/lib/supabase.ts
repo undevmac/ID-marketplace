@@ -9,6 +9,6 @@ export const admin = () => createClient(url, process.env.SUPABASE_SERVICE_ROLE_K
 
 export type Product = {
   id: string; slug: string; name: string; kind: "badge" | "prop";
-  description: string; price_cents: number; image: string; badge: string | null;
+  category: string; description: string; price_cents: number; image: string; badge: string | null;
 };
 export const money = (c: number) => `$${(c / 100).toFixed(2)}`;

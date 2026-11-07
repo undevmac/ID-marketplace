@@ -1,18 +1,14 @@
 "use client";
-import Link from "next/link";
+import A from "./a";
 import { useEffect, useRef, useState } from "react";
 
-// Look is fixed here; words and images come from the admin-editable content.
-const STYLE = [
-  { href: "/#badges", bg: "from-navy to-navy2" },
-  { href: "/#badges", bg: "from-navy2 to-indigo-700" },
-  { href: "/#props", bg: "from-purple-800 to-fuchsia-600" },
-];
-export type Copy = { h: string; s: string; cta: string; image: string };
+// Look is fixed here; words, links and images come from the page builder.
+const BG = ["from-navy to-navy2", "from-navy2 to-indigo-700", "from-purple-800 to-fuchsia-600"];
+export type Slide = { title: string; sub: string; cta: string; href: string; image: string };
 const MS = 6000;
 
-export default function Hero({ copy }: { copy: Copy[] }) {
-  const SLIDES = STYLE.map((st, n) => ({ ...st, ...copy[n] }));
+export default function Hero({ slides }: { slides: Slide[] }) {
+  const SLIDES = slides;
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const track = useRef<HTMLDivElement>(null);
@@ -36,15 +32,15 @@ export default function Hero({ copy }: { copy: Copy[] }) {
         {SLIDES.map((s, n) => (
           <div key={n} role="group" aria-roledescription="slide" aria-label={`${n + 1} of ${SLIDES.length}`} id={`slide-${n}`}
             className={`snap-center shrink-0 w-full h-[70vh] min-h-[420px] max-h-[620px] relative overflow-hidden text-white ${n === i ? "slide-active" : ""}`}>
-            <div className={`kb absolute inset-0 bg-gradient-to-br ${s.bg}`}>
+            <div className={`kb absolute inset-0 bg-gradient-to-br ${BG[n % BG.length]}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {s.image && <img src={s.image} alt="" className="w-full h-full object-cover" loading={n ? "lazy" : "eager"} />}
               {s.image && <div className="absolute inset-0 bg-navy/55" />}
             </div>
             <div className="relative max-w-6xl mx-auto h-full px-4 flex flex-col justify-center gap-4 stagger">
-              <h1 style={{ "--i": 0 } as React.CSSProperties} className="font-display font-extrabold text-4xl sm:text-6xl max-w-2xl leading-tight">{s.h}</h1>
-              <p style={{ "--i": 1 } as React.CSSProperties} className="text-lg max-w-xl text-white/85">{s.s}</p>
-              <Link style={{ "--i": 2 } as React.CSSProperties} href={s.href} className="self-start min-h-11 px-6 grid place-items-center rounded-full bg-amber text-ink font-bold">{s.cta}</Link>
+              <h1 style={{ "--i": 0 } as React.CSSProperties} className="font-display font-extrabold text-4xl sm:text-6xl max-w-2xl leading-tight">{s.title}</h1>
+              <p style={{ "--i": 1 } as React.CSSProperties} className="text-lg max-w-xl text-white/85">{s.sub}</p>
+              {s.cta && <A style={{ "--i": 2 } as React.CSSProperties} href={s.href} className="self-start min-h-11 px-6 grid place-items-center rounded-full bg-amber text-ink font-bold">{s.cta}</A>}
             </div>
           </div>
         ))}

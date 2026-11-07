@@ -6,6 +6,7 @@ import { CartProvider } from "@/components/cart";
 import Header from "@/components/header";
 import Ambient from "@/components/ambient";
 import Reveal from "@/components/reveal";
+import NavLinks from "@/components/nav-links";
 import Footer from "@/components/footer";
 
 const display = Bricolage_Grotesque({ variable: "--font-display", subsets: ["latin"] });
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-screen flex flex-col font-sans">
         <CartProvider>
           <Ambient />
-          <Header />
+          <Header><Suspense fallback={null}><NavLinks className="min-h-11 px-3 flex items-center rounded hover:bg-white/10 text-sm whitespace-nowrap" /></Suspense></Header>
           <main className="flex-1 relative z-10">{children}</main>
           <Suspense fallback={null}><Footer /></Suspense>
         </CartProvider>
