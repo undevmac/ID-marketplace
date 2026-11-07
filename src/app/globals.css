@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #0f1b3d;
+  --navy-2: #1b2b5e;
+  --amber: #ffb703;
+  --paper: #f7f6f2;
+  --ink: #0b1226;
+  --ease: cubic-bezier(.22, 1, .36, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-navy: var(--navy);
+  --color-navy2: var(--navy-2);
+  --color-amber: var(--amber);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+body { background: var(--paper); color: var(--ink); font-size: 16px; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Scroll reveal: hidden only when JS is running, so no-JS visitors see everything */
+.js .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); transition-delay: calc(var(--i, 0) * 80ms); }
+.js .reveal.in { opacity: 1; transform: none; }
+
+@keyframes marquee { to { transform: translateX(-50%); } }
+.marquee-track { animation: marquee 28s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+
+@keyframes shine { 0%, 70% { transform: translateX(-120%) skewX(-20deg); } 100% { transform: translateX(260%) skewX(-20deg); } }
+.shine::after { content: ""; position: absolute; inset: 0; width: 40%; background: linear-gradient(90deg, transparent, #fff8, transparent); animation: shine 3s infinite; }
+
+@keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-14deg); } 75% { transform: rotate(14deg); } }
+.wiggle { animation: wiggle .5s; }
+@keyframes pop { 50% { transform: scale(1.5); } }
+.pop { animation: pop .35s var(--ease); }
+
+@keyframes kenburns { to { transform: scale(1.12); } }
+.slide-active .kb { animation: kenburns 7s linear forwards; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+.slide-active .stagger > * { animation: rise .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 120ms); }
+
+@keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@keyframes shimmer { to { background-position: -200% 0; } }
+.skeleton { background: linear-gradient(90deg, #e8e6df 25%, #f4f3ee 50%, #e8e6df 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+
+@keyframes pageIn { from { opacity: 0; transform: translateY(10px); } }
+main { animation: pageIn .35s var(--ease); }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Reduced motion or the user's motion toggle: kill all motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .js .reveal { opacity: 1; transform: none; }
 }
+html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="off"] *::after { animation: none !important; transition: none !important; }
+html[data-motion="off"].js .reveal { opacity: 1; transform: none; }
