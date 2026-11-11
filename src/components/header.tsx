@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useCart } from "./cart";
 
-export default function Header({ children, brand }: { children?: ReactNode; brand: ReactNode }) {
+export default function Header({ children, brand, desktopNav }: { children?: ReactNode; brand: ReactNode; desktopNav?: ReactNode }) {
   const { lines, bump } = useCart();
   const count = lines.reduce((n, l) => n + l.qty, 0);
   const bar = useRef<HTMLDivElement>(null);
@@ -40,8 +40,8 @@ export default function Header({ children, brand }: { children?: ReactNode; bran
       <div className="max-w-6xl mx-auto h-full px-4 flex items-center justify-between">
         <Link href="/" className="font-display text-xl font-bold min-h-11 flex items-center">{brand}</Link>
         <nav className="flex items-center gap-1">
-          {/* desktop: inline page links. mobile: dropdown (same links) */}
-          <div className="hidden md:flex items-center">{children}</div>
+          {/* desktop: inline page links + Categories dropdown. mobile: ☰ dropdown with the full list */}
+          <div className="hidden md:flex items-center">{desktopNav}</div>
           <details className="md:hidden relative" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) e.currentTarget.open = false; }}>
             <summary aria-label="Menu" className="min-h-11 min-w-11 grid place-items-center list-none cursor-pointer rounded hover:bg-white/10 text-2xl">☰</summary>
             <div className="absolute right-0 top-12 w-56 bg-navy rounded-xl shadow-xl p-2 flex flex-col">{children}</div>

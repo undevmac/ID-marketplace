@@ -12,7 +12,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <CartProvider>
       <Ambient />
-      <Header brand={<Brand />}><Suspense fallback={null}><NavLinks className="min-h-11 px-3 flex items-center rounded hover:bg-white/10 text-sm whitespace-nowrap" /></Suspense></Header>
+      <Header brand={<Brand />} desktopNav={<Suspense fallback={null}><NavLinks variant="desktop" /></Suspense>}><Suspense fallback={null}><NavLinks variant="mobile" /></Suspense></Header>
       <main className="flex-1 relative z-10">{children}</main>
       <Suspense fallback={null}><Footer /></Suspense>
       <Suspense fallback={null}><Reveal /></Suspense>

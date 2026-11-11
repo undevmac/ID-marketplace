@@ -33,5 +33,5 @@ export async function getPage(slug: string, opts?: { preview?: boolean }): Promi
 }
 
 export async function getNav() {
-  return (await listPages()).filter((p) => p.nav && p.published && p.slug !== "home").map((p) => ({ slug: p.slug, title: p.title }));
+  return (await listPages()).filter((p) => p.nav && p.published && p.slug !== "home").map((p) => ({ slug: p.slug, title: p.title, origin: p.origin }));
 }
