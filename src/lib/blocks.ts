@@ -119,15 +119,23 @@ export const DEFAULT_PAGES: Page[] = [
     slug: "home", title: "Home", nav: false, published: true,
     blocks: [
       b("hero", { slides: [
-        { title: "Badges your team will actually wear", sub: "Staff ID cards printed on durable PVC, from 1 card.", cta: "Shop badges", href: "/#categories", image: "" },
-        { title: "Student IDs, ready for the term", sub: "Photo cards with student numbers, barcodes or QR.", cta: "Student IDs", href: "/#categories", image: "" },
-        { title: "Props for film, games & cosplay", sub: "Fictional issuers. Always marked PROP – NOT A GOVERNMENT ID.", cta: "See props", href: "/#categories", image: "" },
+        { title: "Badges your team will actually wear", sub: "Staff ID cards printed on durable PVC, from 1 card.", cta: "Shop badges", href: "/shop", image: "" },
+        { title: "Student IDs, ready for the term", sub: "Photo cards with student numbers, barcodes or QR.", cta: "Student IDs", href: "/shop", image: "" },
+        { title: "Props for film, games & cosplay", sub: "Fictional issuers. Always marked PROP – NOT A GOVERNMENT ID.", cta: "See props", href: "/shop", image: "" },
       ] }),
       b("ticker", { items: "Free proofs before print\nBulk discounts from 50 cards\nShips in 3–5 working days\nStaff badges\nStudent IDs\nVisitor passes\nProp cards (clearly marked)" }),
       b("categories", { title: "Shop by category", auto: "1" }),
       b("products", { title: "Popular right now", category: "all" }),
       b("banner", { heading: "Proof first, print second", sub: "Every order gets a free digital proof before we print a single card.", cta: "How it works", href: "/how-it-works", size: "tall", wave: "1" }),
       b("cta", { heading: "Equip your whole team", body: "Order one card or a thousand.", cta: "Start an order", href: "/cart" }),
+    ],
+  },
+  {
+    slug: "shop", title: "Shop", nav: true, published: true,
+    blocks: [
+      b("banner", { heading: "Shop", sub: "Everything we make, in one place.", size: "short", wave: "1" }),
+      b("products", { title: "All products", category: "all" }),
+      b("cta", { heading: "Need a custom quantity or design?", body: "Tell us what you need in your order notes and we'll send a free proof.", cta: "Start an order", href: "/cart" }),
     ],
   },
   {

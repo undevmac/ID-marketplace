@@ -44,7 +44,7 @@ export default function Header({ children, brand, desktopNav }: { children?: Rea
           <div className="hidden md:flex items-center">{desktopNav}</div>
           <details className="md:hidden relative" onClick={(e) => { if ((e.target as HTMLElement).closest("a")) e.currentTarget.open = false; }}>
             <summary aria-label="Menu" className="min-h-11 min-w-11 grid place-items-center list-none cursor-pointer rounded hover:bg-white/10 text-2xl">☰</summary>
-            <div className="absolute right-0 top-12 w-56 bg-navy rounded-xl shadow-xl p-2 flex flex-col">{children}</div>
+            <div className="fixed right-3 top-[4.25rem] w-72 max-w-[calc(100vw-1.5rem)] max-h-[calc(100svh-6rem)] overflow-y-auto overscroll-contain bg-navy rounded-xl shadow-xl p-2 flex flex-col">{children}</div>
           </details>
           <button onClick={toggle} aria-pressed={!off} aria-label={`Motion ${off ? "off" : "on"}`} title={`Motion ${off ? "off" : "on"}`} className="min-h-11 min-w-11 px-3 text-lg rounded hover:bg-white/10">
             {off ? "⏸" : "✨"}

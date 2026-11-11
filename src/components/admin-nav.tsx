@@ -37,7 +37,7 @@ export default function AdminNav({ brand }: { brand: ReactNode }) {
         </div>
       </aside>
 
-      <nav aria-label="Admin tabs" className="md:hidden fixed bottom-0 inset-x-0 z-40 h-16 bg-navy text-white border-t border-white/10 grid grid-cols-6">
+      <nav aria-label="Admin tabs" className="md:hidden fixed bottom-0 inset-x-0 z-40 h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-navy text-white border-t border-white/10 grid grid-cols-6">
         {LINKS.map(([h, label, icon]) => (
           <Link key={h} href={h} aria-current={on(h) ? "page" : undefined}
             className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${on(h) ? "text-amber" : "text-white/80"}`}>

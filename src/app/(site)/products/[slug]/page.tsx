@@ -22,7 +22,7 @@ async function ProductBody({ params }: Pick<PageProps<"/products/[slug]">, "para
         {p.kind === "prop" && <p className="text-sm bg-amber/30 rounded p-3">Novelty prop. Fictional issuer. Carries a permanent &ldquo;PROP – NOT A GOVERNMENT ID&rdquo; mark.</p>}
         <p className="font-display text-3xl font-bold">{money(p.price_cents)}</p>
         {/* sticky on mobile so the primary action stays thumb-reachable */}
-        <div className="fixed bottom-0 inset-x-0 p-3 bg-white/95 shadow-[0_-4px_12px_#0001] md:static md:p-0 md:shadow-none md:bg-transparent z-40">
+        <div className="fixed bottom-0 inset-x-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white/95 shadow-[0_-4px_12px_#0001] md:static md:p-0 md:shadow-none md:bg-transparent z-40">
           <AddButton p={p} sourceId="art-main" className="w-full md:w-auto" />
         </div>
       </div>

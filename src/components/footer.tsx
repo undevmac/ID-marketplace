@@ -17,7 +17,7 @@ export default async function Footer() {
         <div className="max-w-6xl mx-auto space-y-4">
           <p className="font-display text-xl text-white"><Brand /></p>
           <nav className="flex flex-wrap gap-x-5">
-            {nav.map((p) => <Link key={p.slug} href={`/${p.slug}`} className="min-h-11 flex items-center underline-offset-4 hover:underline">{p.title}</Link>)}
+            {nav.filter((p) => p.origin !== "category").map((p) => <Link key={p.slug} href={`/${p.slug}`} className="min-h-11 flex items-center underline-offset-4 hover:underline">{p.title}</Link>)}
           </nav>
           {/* fixed legal line: not editable, so the prop disclaimer can't be removed from the admin */}
           <p>Prop cards are novelty items for film, games and cosplay. They carry a permanent &ldquo;PROP – NOT A GOVERNMENT ID&rdquo; mark and use fictional issuers only.</p>

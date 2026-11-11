@@ -99,7 +99,7 @@ export default function PageEditor({ initial, cats }: { initial: { slug: string;
           <button type="button" className="min-h-11 px-5 rounded-full bg-amber font-bold" onClick={() => setBlocks([...blocks, { id: crypto.randomUUID().slice(0, 8), type: add, data: structuredClone(BLOCKS[add].def) }])}>+ Add block</button>
         </div>
 
-        <div className="fixed bottom-16 md:bottom-0 inset-x-0 lg:static bg-white/95 lg:bg-transparent p-3 lg:p-0 shadow-[0_-4px_12px_#0001] lg:shadow-none flex items-center gap-3 flex-wrap z-40">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 inset-x-0 lg:static bg-white/95 lg:bg-transparent p-3 lg:p-0 shadow-[0_-4px_12px_#0001] lg:shadow-none flex items-center gap-3 flex-wrap z-40">
           <button onClick={save} disabled={pending} className="min-h-12 px-8 rounded-full bg-navy text-white font-bold disabled:opacity-60">{pending ? "Saving…" : "Save"}</button>
           <Link href="/admin/pages" className="underline min-h-11 grid place-items-center">Back to pages</Link>
           {msg && <span role="status" className={msg.ok ? "text-green-700 font-bold" : "text-red-700 font-bold"}>{msg.t}</span>}

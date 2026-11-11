@@ -114,7 +114,7 @@ function One({ b }: { b: Block }) {
         <section className={`relative overflow-hidden text-white ${s(d.size) === "tall" ? "min-h-[460px]" : "min-h-[280px]"} mt-12 first:mt-0 grid items-center`}>
           <Parallax src={s(d.image)} />
           <div className={`${W} relative py-16 space-y-3 reveal`}>
-            <h2 className="font-display font-extrabold text-4xl md:text-5xl max-w-2xl">{s(d.heading)}</h2>
+            <h2 className="font-display font-extrabold text-[clamp(1.875rem,8vw,3rem)] max-w-2xl break-words">{s(d.heading)}</h2>
             {s(d.sub) && <p className="text-lg max-w-xl text-white/90">{s(d.sub)}</p>}
             {s(d.cta) && <Btn href={s(d.href)}>{s(d.cta)}</Btn>}
           </div>

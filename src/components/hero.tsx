@@ -31,14 +31,14 @@ export default function Hero({ slides }: { slides: Slide[] }) {
       <div ref={track} onScroll={onScroll} className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
         {SLIDES.map((s, n) => (
           <div key={n} role="group" aria-roledescription="slide" aria-label={`${n + 1} of ${SLIDES.length}`} id={`slide-${n}`}
-            className={`snap-center shrink-0 w-full h-[70vh] min-h-[420px] max-h-[620px] relative overflow-hidden text-white ${n === i ? "slide-active" : ""}`}>
+            className={`snap-center shrink-0 w-full h-[70svh] min-h-[420px] max-h-[620px] relative overflow-hidden text-white ${n === i ? "slide-active" : ""}`}>
             <div className={`kb absolute inset-0 bg-gradient-to-br ${BG[n % BG.length]}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {s.image && <img src={s.image} alt="" className="w-full h-full object-cover" loading={n ? "lazy" : "eager"} />}
               {s.image && <div className="absolute inset-0 bg-navy/55" />}
             </div>
             <div className="relative max-w-6xl mx-auto h-full px-4 flex flex-col justify-center gap-4 stagger">
-              <h1 style={{ "--i": 0 } as React.CSSProperties} className="font-display font-extrabold text-4xl sm:text-6xl max-w-2xl leading-tight">{s.title}</h1>
+              <h1 style={{ "--i": 0 } as React.CSSProperties} className="font-display font-extrabold text-[clamp(2rem,9vw,3.75rem)] max-w-2xl leading-tight break-words">{s.title}</h1>
               <p style={{ "--i": 1 } as React.CSSProperties} className="text-lg max-w-xl text-white/85">{s.sub}</p>
               {s.cta && <A style={{ "--i": 2 } as React.CSSProperties} href={s.href} className="self-start min-h-11 px-6 grid place-items-center rounded-full bg-amber text-ink font-bold">{s.cta}</A>}
             </div>
