@@ -1,5 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
+import { adminEmails, esc, sendDiscord, sendEmail } from "@/lib/email";
+import { money } from "@/lib/supabase";
 import { admin } from "@/lib/supabase";
 
 // Client sends only {slug, qty}. Prices and totals come from the DB here.
@@ -27,5 +30,29 @@ export async function placeOrder(_: { error?: string } | undefined, fd: FormData
   const { error: e2 } = await sb.from("bw_order_items").insert(items.map((i) => ({ ...i, order_id: order.id })));
   if (e2) { await sb.from("bw_orders").delete().eq("id", order.id); return { error: "Could not place the order. Try again." }; }
 
+  // Emails go out after the response so a slow or failing mail service never blocks the order.
+  const lines = items.map((i) => `${i.qty} × ${money(i.unit_cents)}`).join(", ");
+  const summary = `<p><b>${esc(org)}</b> (${esc(name)}, ${esc(email)})</p><p>Items: ${esc(lines)}<br>Total: <b>${money(total)}</b></p>${notes ? `<p>Notes: ${esc(notes)}</p>` : ""}<p>Order ${order.id}</p>`;
+  after(async () => {
+    const to = await adminEmails();
+    await Promise.all([
+      sendDiscord(`New order from ${org} (${name}): ${money(total)}. ${lines}`),
+      to.length ? sendEmail(to, `New order from ${org}`, `<h2>New order</h2>${summary}`, email) : null,
+      sendEmail(email, "We received your order", `<h2>Thanks, ${esc(name)}!</h2><p>We received your order and will email a free proof before printing.</p>${summary}`),
+    ]);
+  });
   redirect(`/order/${order.id}`);
+}
+
+// Contact form -> admin inbox. Nothing is stored; honeypot field "website" catches simple bots.
+export async function sendContact(_: { msg?: string; error?: string } | undefined, fd: FormData): Promise<{ msg?: string; error?: string }> {
+  const str = (k: string) => String(fd.get(k) ?? "").trim();
+  const name = str("name").slice(0, 100), email = str("email").slice(0, 200), message = str("message").slice(0, 4000);
+  if (str("website")) return { msg: "Thanks, message sent." };
+  if (!name || !message || !/^\S+@\S+\.\S+$/.test(email)) return { error: "Please fill in your name, a valid email and a message." };
+  const to = await adminEmails();
+  if (to.length === 0) return { error: "Messages are not set up yet. Please try again later." };
+  after(() => sendDiscord(`Message from ${name} (${email}): ${message}`));
+  const r = await sendEmail(to, `Message from ${name}`, `<p><b>${esc(name)}</b> (${esc(email)})</p><p style="white-space:pre-line">${esc(message)}</p>`, email);
+  return r.ok ? { msg: "Thanks, message sent. We reply by email." } : { error: "Could not send your message. Please try again." };
 }

@@ -9,6 +9,10 @@ import AddButton from "./add-button";
 import CategoryTiles from "./category-tiles";
 import Parallax from "./parallax";
 import Link from "next/link";
+import ContactForm from "./contact-form";
+import Script from "next/script";
+import { getWhatsapp } from "@/lib/brand";
+import { waLink } from "@/lib/wa";
 
 const W = "max-w-6xl mx-auto px-4";
 const s = (v: unknown) => (typeof v === "string" ? v : "");
@@ -33,6 +37,31 @@ async function ProductGrid({ title, category }: { title: string; category: strin
   if (category !== "all") q = q.eq("category", category);
   const { data } = await q;
   const items = (data as Product[]) ?? [];
+  // A category is one product in several looks: show the looks as samples and one Order button at the lowest price.
+  if (category !== "all" && items.length > 0) {
+    const cheapest = items.reduce((a, p) => (p.price_cents < a.price_cents ? p : a));
+    const wa = await getWhatsapp();
+    return (
+      <section className={`${W} pt-12`}>
+        {title && <h2 className="reveal font-display text-3xl font-bold mb-6">{title}</h2>}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {items.map((p, i) => (
+            <article key={p.id} style={idx(i)} className="reveal bg-white rounded-2xl p-4 shadow-sm">
+              <div id={`art-${p.slug}-${title.length}`}><CardArt p={p} /></div>
+              <h3 className="font-bold mt-3">{p.name}</h3>
+              <p className="text-sm text-black/60 line-clamp-2">{p.description}</p>
+            </article>
+          ))}
+        </div>
+        <div className="reveal mt-6 flex flex-wrap items-center gap-4">
+          <span className="font-display text-2xl font-bold">{money(cheapest.price_cents)} <span className="text-base font-normal text-black/60">per card</span></span>
+          <AddButton p={cheapest} sourceId={`art-${cheapest.slug}-${title.length}`} label="Order this category" />
+          {wa && <a href={waLink(wa, `Hi, I'd like to order the ${items[0].category} cards (${money(cheapest.price_cents)} per card).`)} target="_blank" rel="noopener noreferrer" className="min-h-11 px-5 rounded-full bg-[#25D366] text-white font-bold grid place-items-center">Order on WhatsApp</a>}
+        </div>
+        <p className="mt-2 text-sm text-black/60">Samples show the styles available. Tell us which one you want in your order notes.</p>
+      </section>
+    );
+  }
   return (
     <section className={`${W} pt-12`}>
       {title && <h2 className="reveal font-display text-3xl font-bold mb-6">{title}</h2>}
@@ -86,6 +115,13 @@ function One({ b }: { b: Block }) {
       return <Tiles title={s(d.title)} auto={!!s(d.auto)} tiles={list(d.tiles)} />;
     case "products":
       return <ProductGrid title={s(d.title)} category={s(d.category) || "all"} />;
+    case "livechat": {
+      // Only Tawk.to links are accepted, so a typo or paste can't load some other site's script.
+      const m = s(d.src).match(/https:\/\/embed\.tawk\.to\/[\w-]+\/[\w-]+/);
+      return m ? <Script src={m[0]} strategy="lazyOnload" crossOrigin="anonymous" /> : null;
+    }
+    case "contact":
+      return <ContactForm heading={s(d.heading)} body={s(d.body)} />;
     case "text":
       return (
         <section className={`${W} pt-12 reveal ${s(d.align) === "center" ? "text-center" : ""}`}>

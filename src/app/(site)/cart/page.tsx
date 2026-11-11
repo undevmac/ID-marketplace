@@ -4,13 +4,14 @@ import { useActionState, useState } from "react";
 import { useCart } from "@/components/cart";
 import { money } from "@/lib/supabase";
 import { placeOrder } from "@/app/actions";
+import { waLink } from "@/lib/wa";
 
 const field = "w-full min-h-11 rounded-lg border border-black/20 px-3 bg-white";
 // Green tick appears once the field inside is valid (and has been touched).
 const Tick = () => <span aria-hidden className="hidden group-has-[input:user-valid]:inline group-has-[textarea:user-valid]:inline text-green-600 font-bold ml-1">✓</span>;
 
 export default function CartPage() {
-  const { lines, setQty } = useCart();
+  const { lines, setQty, wa } = useCart();
   const [leaving, setLeaving] = useState<string | null>(null);
   const remove = (slug: string) => { setLeaving(slug); setTimeout(() => { setQty(slug, 0); setLeaving(null); }, 250); };
   const [state, action, pending] = useActionState(placeOrder, undefined);
@@ -37,6 +38,11 @@ export default function CartPage() {
         ))}
       </ul>
       <p className="text-right font-display text-2xl font-bold">Total <span key={total} className="pop inline-block">{money(total)}</span></p>
+
+      {wa && (
+        <a href={waLink(wa, `Hi, I'd like to order:\n${lines.map((l) => `${l.qty} x ${l.name}`).join("\n")}\nTotal: ${money(total)}`)}
+          target="_blank" rel="noopener noreferrer" className="grid place-items-center w-full min-h-12 rounded-full bg-[#25D366] text-white font-bold">Checkout on WhatsApp</a>
+      )}
 
       <form action={action} className="bg-white rounded-xl p-4 space-y-3">
         <h2 className="font-display text-xl font-bold">Your organization</h2>

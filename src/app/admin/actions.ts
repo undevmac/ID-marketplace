@@ -7,7 +7,8 @@ import { COOKIE, getAdmin } from "@/lib/auth";
 import { FIELDS } from "@/lib/content";
 import { RESERVED, sanitizeBlocks } from "@/lib/blocks";
 import { listPages } from "@/lib/pages";
-import { ORDER_STATUSES } from "@/lib/orders";
+import { ORDER_STATUSES, statusLabel } from "@/lib/orders";
+import { adminEmails, esc, sendEmail, validEmails, validWebhook } from "@/lib/email";
 
 type R = { msg?: string; error?: string } | undefined;
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -34,9 +35,14 @@ export async function logout() {
 export async function saveContent(_: R, fd: FormData): Promise<R> {
   if (!(await getAdmin())) return EXPIRED;
   if (fd.has("site_name") && !s(fd, "site_name")) return { error: "The website name can't be empty." };
-  const rows = FIELDS.filter((f) => fd.has(f.key)).map((f) => ({ key: f.key, value: s(fd, f.key).slice(0, f.key === "site_name" ? 40 : 2000), updated_at: new Date().toISOString() }));
-  const { error } = await admin().from("bw_content").upsert(rows);
-  if (error) return { error: "Could not save." };
+  if (fd.has("notify_email") && !validEmails(s(fd, "notify_email"))) return { error: "Enter up to 5 valid email addresses, separated by commas." };
+  if (fd.has("discord_webhook") && !validWebhook(s(fd, "discord_webhook"))) return { error: "That doesn't look like a Discord webhook URL (https://discord.com/api/webhooks/...)." };
+  if (fd.has("whatsapp_number") && s(fd, "whatsapp_number") && !/^\d{7,15}$/.test(s(fd, "whatsapp_number").replace(/[\s+()-]/g, ""))) return { error: "Enter the WhatsApp number with country code, digits only." };
+  const rows = FIELDS.filter((f) => fd.has(f.key)).map((f) => ({ f, key: f.key, value: (f.key === "whatsapp_number" ? s(fd, f.key).replace(/\D/g, "") : s(fd, f.key)).slice(0, f.key === "site_name" ? 40 : 2000), updated_at: new Date().toISOString() }));
+  const put = (secret: boolean) => rows.filter((r) => !!r.f.secret === secret).map(({ key, value, updated_at }) => ({ key, value, updated_at }));
+  const [a, b] = [put(false), put(true)];
+  const errs = [a.length ? (await admin().from("bw_content").upsert(a)).error : null, b.length ? (await admin().from("bw_secrets").upsert(b)).error : null];
+  if (errs.some(Boolean)) return { error: "Could not save." };
   updateTag("site"); // refresh the cached site name everywhere
   return { msg: "Saved ✓" };
 }
@@ -152,9 +158,12 @@ export async function setOrderStatus(_: R, fd: FormData): Promise<R> {
   if (!(await getAdmin())) return EXPIRED;
   const status = s(fd, "status");
   if (!ORDER_STATUSES.some((o) => o[0] === status)) return { error: "Unknown status." };
-  const { error } = await admin().from("bw_orders").update({ status }).eq("id", s(fd, "id"));
+  const id = s(fd, "id");
+  const { data: prev } = await admin().from("bw_orders").select("status,email,contact_name").eq("id", id).maybeSingle();
+  const { error } = await admin().from("bw_orders").update({ status }).eq("id", id);
   if (error) return { error: "Could not update." };
   revalidatePath("/admin/orders");
+  if (prev && prev.status !== status) await sendEmail(prev.email, `Your order is now: ${statusLabel(status)}`, `<p>Hi ${esc(prev.contact_name)},</p><p>Your order status changed to <b>${esc(statusLabel(status))}</b>.</p>`);
   return { msg: "Updated ✓" };
 }
 
@@ -167,4 +176,47 @@ export async function signUpload(filename: string): Promise<{ path: string; toke
   const { data, error } = await admin().storage.from("site").createSignedUploadUrl(path);
   if (error || !data) return { error: "Upload not available." };
   return { path, token: data.token, url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site/${path}` };
+}
+
+// Settings > Email: sends one message to the saved address(es) so the admin can confirm Resend works.
+export async function sendTestEmail(_: R, _fd: FormData): Promise<R> {
+  if (!(await getAdmin())) return EXPIRED;
+  const to = await adminEmails();
+  if (to.length === 0) return { error: "Save an email address first." };
+  const r = await sendEmail(to, "Test email", "<p>Your store can send email. ✓</p>");
+  return r.ok ? { msg: `Sent to ${to.join(", ")} ✓` } : { error: r.error ?? "Could not send." };
+}
+
+// ---------- admin account ----------
+// Re-checks the current password first, so a stolen session cookie alone can't take over the account.
+async function verifyCurrent(password: string) {
+  const u = await getAdmin();
+  if (!u?.email) return null;
+  const { error } = await db().auth.signInWithPassword({ email: u.email, password });
+  return error ? null : u;
+}
+async function endSession(): Promise<never> {
+  (await cookies()).delete(COOKIE);
+  redirect("/admin/login");
+}
+export async function changePassword(_: R, fd: FormData): Promise<R> {
+  if (!(await getAdmin())) return EXPIRED;
+  const next = String(fd.get("new") ?? "");
+  if (next.length < 8) return { error: "New password must be at least 8 characters." };
+  if (next !== String(fd.get("confirm") ?? "")) return { error: "The two new passwords don't match." };
+  const u = await verifyCurrent(String(fd.get("current") ?? ""));
+  if (!u) return { error: "Current password is wrong." };
+  const { error } = await admin().auth.admin.updateUserById(u.id, { password: next });
+  if (error) return { error: "Could not change the password." };
+  return endSession(); // sign in again with the new password
+}
+export async function changeEmail(_: R, fd: FormData): Promise<R> {
+  if (!(await getAdmin())) return EXPIRED;
+  const email = s(fd, "email").toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return { error: "Enter a valid email address." };
+  const u = await verifyCurrent(String(fd.get("current") ?? ""));
+  if (!u) return { error: "Current password is wrong." };
+  const { error } = await admin().auth.admin.updateUserById(u.id, { email, email_confirm: true });
+  if (error) return { error: "Could not change the email (is it already used?)." };
+  return endSession();
 }

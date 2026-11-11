@@ -14,4 +14,16 @@ export async function getSiteName(): Promise<string> {
   } catch { return DEFAULT_SITE_NAME; }
 }
 
+
+// Digits only; empty string means WhatsApp is off.
+export async function getWhatsapp(): Promise<string> {
+  "use cache";
+  cacheTag("site");
+  cacheLife("minutes");
+  try {
+    const { data } = await db().from("bw_content").select("value").eq("key", "whatsapp_number").maybeSingle();
+    return (data?.value ?? "").replace(/\D/g, "");
+  } catch { return ""; }
+}
+
 export { splitBrand } from "./split-brand";

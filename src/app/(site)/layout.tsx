@@ -6,16 +6,20 @@ import Reveal from "@/components/reveal";
 import NavLinks from "@/components/nav-links";
 import Footer from "@/components/footer";
 import Brand from "@/components/brand";
+import WaFloat from "@/components/wa-float";
+import { getWhatsapp } from "@/lib/brand";
 
 // Customer-facing chrome. The admin area does NOT use this layout.
-export default function SiteLayout({ children }: { children: ReactNode }) {
+export default async function SiteLayout({ children }: { children: ReactNode }) {
+  const wa = await getWhatsapp();
   return (
-    <CartProvider>
+    <CartProvider wa={wa}>
       <Ambient />
       <Header brand={<Brand />} desktopNav={<Suspense fallback={null}><NavLinks variant="desktop" /></Suspense>}><Suspense fallback={null}><NavLinks variant="mobile" /></Suspense></Header>
       <main className="flex-1 relative z-10">{children}</main>
       <Suspense fallback={null}><Footer /></Suspense>
       <Suspense fallback={null}><Reveal /></Suspense>
+      <WaFloat />
     </CartProvider>
   );
 }

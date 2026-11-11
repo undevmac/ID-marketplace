@@ -33,6 +33,16 @@ export const BLOCKS: Record<string, { label: string; fields: F[]; def: Data }> =
     fields: [t("title", "Title"), { key: "category", label: "Show products from", kind: "category" }],
     def: { title: "Products", category: "all" },
   },
+  livechat: {
+    label: "Live chat widget (Tawk.to)",
+    fields: [l("src", "Paste your Tawk.to chat link or embed code")],
+    def: { src: "" },
+  },
+  contact: {
+    label: "Contact form",
+    fields: [t("heading", "Heading"), l("body", "Text above the form")],
+    def: { heading: "Contact us", body: "Questions about an order or a custom design? Send us a message." },
+  },
   text: {
     label: "Heading + text",
     fields: [t("heading", "Heading"), l("body", "Text"), { key: "align", label: "Alignment", kind: "select", options: ["left", "center"] }],
@@ -108,7 +118,7 @@ export const categoryPage = (c: { slug: string; label: string; description: stri
   slug: c.slug, title: c.label, nav: true, published: true,
   blocks: [
     b("banner", { heading: c.label, sub: c.description, size: "short", wave: "1" }),
-    b("products", { title: `All ${c.label.toLowerCase()}`, category: c.slug }),
+    b("products", { title: "Samples", category: c.slug }),
     b("faq", { title: "Good to know", items: CATEGORY_FAQ[c.slug] ?? [{ q: "Can I order a custom quantity?", a: "Yes. Add the quantity in your order notes and we'll confirm the price." }] }),
     b("cta", { heading: "Need a custom quantity or design?", body: "Tell us what you need in your order notes and we'll send a free proof.", cta: "Start an order", href: "/cart" }),
   ],
@@ -134,7 +144,7 @@ export const DEFAULT_PAGES: Page[] = [
     slug: "shop", title: "Shop", nav: true, published: true,
     blocks: [
       b("banner", { heading: "Shop", sub: "Everything we make, in one place.", size: "short", wave: "1" }),
-      b("products", { title: "All products", category: "all" }),
+      b("categories", { title: "Pick a category", auto: "1" }),
       b("cta", { heading: "Need a custom quantity or design?", body: "Tell us what you need in your order notes and we'll send a free proof.", cta: "Start an order", href: "/cart" }),
     ],
   },
@@ -160,14 +170,9 @@ export const DEFAULT_PAGES: Page[] = [
     ],
   },
   {
-    slug: "shipping", title: "Shipping", nav: true, published: true,
-    blocks: [b("text", { heading: "Shipping & delivery", body: "Orders typically ship 3–5 working days after proof approval. We will email tracking details once your cards are on their way.\n\nEdit this page in the admin to add your shipping rates and regions." })],
-  },
-  {
     slug: "contact", title: "Contact", nav: true, published: true,
     blocks: [
-      b("text", { heading: "Contact us", body: "Questions about an order or a custom design? Place an order request and add your questions in the notes. We reply by email.", align: "center" }),
-      b("cta", { heading: "Start with an order request", body: "", cta: "Start an order", href: "/cart" }),
+      b("contact", { heading: "Contact us", body: "Questions about an order or a custom design? Send us a message and we reply by email." }),
     ],
   },
 ];
