@@ -11,9 +11,9 @@ import { getWhatsapp } from "@/lib/brand";
 
 // Customer-facing chrome. The admin area does NOT use this layout.
 export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const wa = await getWhatsapp();
+  const [wa, waFloat] = await Promise.all([getWhatsapp("checkout"), getWhatsapp("float")]);
   return (
-    <CartProvider wa={wa}>
+    <CartProvider wa={wa} waFloat={waFloat}>
       <Ambient />
       <Header brand={<Brand />} desktopNav={<Suspense fallback={null}><NavLinks variant="desktop" /></Suspense>}><Suspense fallback={null}><NavLinks variant="mobile" /></Suspense></Header>
       <main className="flex-1 relative z-10">{children}</main>

@@ -15,14 +15,15 @@ export async function getSiteName(): Promise<string> {
 }
 
 
-// Digits only; empty string means WhatsApp is off.
-export async function getWhatsapp(): Promise<string> {
+// Digits only; empty string means that WhatsApp feature is off (no number, or its toggle is off).
+export async function getWhatsapp(kind: "float" | "checkout"): Promise<string> {
   "use cache";
   cacheTag("site");
   cacheLife("minutes");
   try {
-    const { data } = await db().from("bw_content").select("value").eq("key", "whatsapp_number").maybeSingle();
-    return (data?.value ?? "").replace(/\D/g, "");
+    const { data } = await db().from("bw_content").select("key,value").in("key", ["whatsapp_number", kind === "float" ? "wa_float" : "wa_checkout"]);
+    const v = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]));
+    return v[kind === "float" ? "wa_float" : "wa_checkout"] === "0" ? "" : (v.whatsapp_number ?? "").replace(/\D/g, "");
   } catch { return ""; }
 }
 

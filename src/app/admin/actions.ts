@@ -8,7 +8,8 @@ import { FIELDS } from "@/lib/content";
 import { RESERVED, sanitizeBlocks } from "@/lib/blocks";
 import { listPages } from "@/lib/pages";
 import { ORDER_STATUSES, statusLabel } from "@/lib/orders";
-import { adminEmails, esc, sendEmail, validEmails, validWebhook } from "@/lib/email";
+import { adminEmails, esc, on, sendDiscord, sendEmail, validEmails, validWebhook } from "@/lib/email";
+import { waNumber } from "@/lib/phone";
 
 type R = { msg?: string; error?: string } | undefined;
 const s = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
@@ -37,8 +38,16 @@ export async function saveContent(_: R, fd: FormData): Promise<R> {
   if (fd.has("site_name") && !s(fd, "site_name")) return { error: "The website name can't be empty." };
   if (fd.has("notify_email") && !validEmails(s(fd, "notify_email"))) return { error: "Enter up to 5 valid email addresses, separated by commas." };
   if (fd.has("discord_webhook") && !validWebhook(s(fd, "discord_webhook"))) return { error: "That doesn't look like a Discord webhook URL (https://discord.com/api/webhooks/...)." };
-  if (fd.has("whatsapp_number") && s(fd, "whatsapp_number") && !/^\d{7,15}$/.test(s(fd, "whatsapp_number").replace(/[\s+()-]/g, ""))) return { error: "Enter the WhatsApp number with country code, digits only." };
-  const rows = FIELDS.filter((f) => fd.has(f.key)).map((f) => ({ f, key: f.key, value: (f.key === "whatsapp_number" ? s(fd, f.key).replace(/\D/g, "") : s(fd, f.key)).slice(0, f.key === "site_name" ? 40 : 2000), updated_at: new Date().toISOString() }));
+  // WhatsApp: country code + number are cleaned together, then stored as one digits-only number.
+  const over: Record<string, string> = {};
+  if (fd.has("whatsapp_cc")) {
+    const cc = s(fd, "whatsapp_cc").replace(/\D/g, "");
+    const full = waNumber(cc, s(fd, "whatsapp_national"));
+    if (full === null) return { error: "That WhatsApp number doesn't look right. Choose the country and enter the number." };
+    if (full && !cc) return { error: "Choose the country code." };
+    Object.assign(over, { whatsapp_cc: full ? cc : "", whatsapp_number: full });
+  }
+  const rows = FIELDS.filter((f) => fd.has(f.key) || f.key in over).map((f) => ({ f, key: f.key, value: (over[f.key] ?? (f.kind === "toggle" ? (s(fd, f.key) === "1" ? "1" : "0") : s(fd, f.key))).slice(0, f.key === "site_name" ? 40 : 2000), updated_at: new Date().toISOString() }));
   const put = (secret: boolean) => rows.filter((r) => !!r.f.secret === secret).map(({ key, value, updated_at }) => ({ key, value, updated_at }));
   const [a, b] = [put(false), put(true)];
   const errs = [a.length ? (await admin().from("bw_content").upsert(a)).error : null, b.length ? (await admin().from("bw_secrets").upsert(b)).error : null];
@@ -163,7 +172,7 @@ export async function setOrderStatus(_: R, fd: FormData): Promise<R> {
   const { error } = await admin().from("bw_orders").update({ status }).eq("id", id);
   if (error) return { error: "Could not update." };
   revalidatePath("/admin/orders");
-  if (prev && prev.status !== status) await sendEmail(prev.email, `Your order is now: ${statusLabel(status)}`, `<p>Hi ${esc(prev.contact_name)},</p><p>Your order status changed to <b>${esc(statusLabel(status))}</b>.</p>`);
+  if (prev && prev.status !== status && (await on("notify_status_email"))) await sendEmail(prev.email, `Your order is now: ${statusLabel(status)}`, `<p>Hi ${esc(prev.contact_name)},</p><p>Your order status changed to <b>${esc(statusLabel(status))}</b>.</p>`);
   return { msg: "Updated ✓" };
 }
 
@@ -219,4 +228,9 @@ export async function changeEmail(_: R, fd: FormData): Promise<R> {
   const { error } = await admin().auth.admin.updateUserById(u.id, { email, email_confirm: true });
   if (error) return { error: "Could not change the email (is it already used?)." };
   return endSession();
+}
+export async function sendTestDiscord(_: R, _fd: FormData): Promise<R> {
+  if (!(await getAdmin())) return EXPIRED;
+  const r = await sendDiscord("Test message: your store can post to this channel. \u2713", true);
+  return r.ok ? { msg: "Sent to Discord \u2713" } : { error: r.error };
 }

@@ -1,0 +1,11 @@
+import { waNumber } from "./phone.ts";
+const eq = (a: unknown, b: unknown) => { if (a !== b) throw new Error(`${a} !== ${b}`); };
+  eq(waNumber("234", "0803 123 4567"), "2348031234567");
+  eq(waNumber("234", "+234 803 123 4567"), "2348031234567");
+  eq(waNumber("234", "2340803 123 4567"), "2348031234567");
+  eq(waNumber("234", "00234 803 123 4567"), "2348031234567");
+  eq(waNumber("1", "1 (555) 123-4567"), "15551234567");
+  eq(waNumber("44", "07123 456789"), "447123456789");
+  eq(waNumber("44", ""), "");
+  eq(waNumber("44", "12"), null);
+console.log("phone ok");

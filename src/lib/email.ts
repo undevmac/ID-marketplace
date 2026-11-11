@@ -35,11 +35,21 @@ export async function adminEmails(): Promise<string[]> {
 
 export const validWebhook = (v: string) => v === "" || /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\d+\/[\w-]+$/.test(v);
 
-// Posts a short message to the admin's Discord channel. Failures are ignored; it never blocks an order.
-export async function sendDiscord(text: string): Promise<void> {
+// Setting toggles are stored as "1"/"0" in bw_content; anything but "0" means on.
+export async function on(key: string): Promise<boolean> {
   try {
+    const { data } = await admin().from("bw_content").select("value").eq("key", key).maybeSingle();
+    return data?.value !== "0";
+  } catch { return true; }
+}
+
+// Posts a short message to the admin's Discord channel. Never throws. force = the admin's test button (ignores the toggle).
+export async function sendDiscord(text: string, force = false): Promise<{ ok: boolean; error?: string }> {
+  try {
+    if (!force && !(await on("notify_discord"))) return { ok: false, error: "Discord notifications are switched off." };
     const { data } = await admin().from("bw_secrets").select("value").eq("key", "discord_webhook").maybeSingle();
-    if (!data?.value || !validWebhook(data.value)) return;
-    await fetch(data.value, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: text.slice(0, 1900), allowed_mentions: { parse: [] } }) });
-  } catch {}
+    if (!data?.value || !validWebhook(data.value)) return { ok: false, error: "Save a Discord webhook URL first." };
+    const r = await fetch(data.value, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: text.slice(0, 1900), allowed_mentions: { parse: [] } }) });
+    return r.ok ? { ok: true } : { ok: false, error: `Discord answered ${r.status}. Check the webhook URL.` };
+  } catch { return { ok: false, error: "Could not reach Discord." }; }
 }

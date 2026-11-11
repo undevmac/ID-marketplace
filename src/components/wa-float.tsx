@@ -3,7 +3,7 @@ import { useCart } from "./cart";
 
 // Floating WhatsApp chat button, shown on every page once a number is saved in Settings.
 export default function WaFloat() {
-  const { wa } = useCart();
+  const { waFloat: wa } = useCart();
   if (!wa) return null;
   return (
     <a href={`https://wa.me/${wa}?text=${encodeURIComponent("Hi, I have a question about your cards.")}`} target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp"

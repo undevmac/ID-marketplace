@@ -3,12 +3,12 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 // Display-only snapshot. The server re-reads prices from the DB at checkout.
 export type Line = { slug: string; name: string; price_cents: number; qty: number };
-type Ctx = { wa: string; lines: Line[]; bump: number; add: (l: Omit<Line, "qty">, qty?: number) => void; setQty: (slug: string, q: number) => void; clear: () => void };
+type Ctx = { wa: string; waFloat: string; lines: Line[]; bump: number; add: (l: Omit<Line, "qty">, qty?: number) => void; setQty: (slug: string, q: number) => void; clear: () => void };
 
 const C = createContext<Ctx>(null!);
 export const useCart = () => useContext(C);
 
-export function CartProvider({ children, wa = "" }: { children: ReactNode; wa?: string }) {
+export function CartProvider({ children, wa = "", waFloat = "" }: { children: ReactNode; wa?: string; waFloat?: string }) {
   const [lines, setLines] = useState<Line[]>([]);
   const [bump, setBump] = useState(0); // unique key to retrigger cart-icon animation
 
@@ -25,7 +25,7 @@ export function CartProvider({ children, wa = "" }: { children: ReactNode; wa?: 
   };
   const setQty = (slug: string, q: number) => save(q <= 0 ? lines.filter((l) => l.slug !== slug) : lines.map((l) => (l.slug === slug ? { ...l, qty: Math.min(5000, q) } : l)));
 
-  return <C.Provider value={{ wa, lines, bump, add, setQty, clear: () => save([]) }}>{children}</C.Provider>;
+  return <C.Provider value={{ wa, waFloat, lines, bump, add, setQty, clear: () => save([]) }}>{children}</C.Provider>;
 }
 
 // Ghost of the source element flies to the cart icon (transform/opacity only).

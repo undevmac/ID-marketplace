@@ -40,7 +40,7 @@ async function ProductGrid({ title, category }: { title: string; category: strin
   // A category is one product in several looks: show the looks as samples and one Order button at the lowest price.
   if (category !== "all" && items.length > 0) {
     const cheapest = items.reduce((a, p) => (p.price_cents < a.price_cents ? p : a));
-    const wa = await getWhatsapp();
+    const wa = await getWhatsapp("checkout");
     return (
       <section className={`${W} pt-12`}>
         {title && <h2 className="reveal font-display text-3xl font-bold mb-6">{title}</h2>}
