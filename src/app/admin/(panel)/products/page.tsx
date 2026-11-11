@@ -5,6 +5,8 @@ import { listCategories } from "@/lib/categories";
 import CardArt from "@/components/card-art";
 import { Head, btnPrimary, card } from "@/components/admin-ui";
 import type { AdminProduct } from "@/components/product-form";
+import { DeleteForm } from "@/components/admin-forms";
+import { deleteProduct } from "../../actions";
 
 export default async function Products({ searchParams }: PageProps<"/admin/products">) {
   await requireAdmin();
@@ -37,7 +39,10 @@ export default async function Products({ searchParams }: PageProps<"/admin/produ
               <p className="text-sm text-black/60">{label(p.category)} · <span className="tabular-nums">{money(p.price_cents)}</span></p>
               <p className="mt-1"><span className={`text-xs font-bold rounded-full px-2 py-1 ${p.active ? "bg-green-100 text-green-800" : "bg-black/10 text-black/70"}`}>{p.active ? "Visible" : "Hidden"}</span>{p.badge && <span className="ml-2 text-xs font-bold bg-amber/40 rounded-full px-2 py-1">{p.badge}</span>}</p>
             </div>
-            <Link href={`/admin/products/${p.id}`} className={btnPrimary}>Edit</Link>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link href={`/admin/products/${p.id}`} className={btnPrimary}>Edit</Link>
+              <DeleteForm action={deleteProduct} name="id" value={p.id} message={`Delete “${p.name}” permanently?`} />
+            </div>
           </li>
         ))}
       </ul>
