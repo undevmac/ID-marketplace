@@ -6,11 +6,11 @@ export const input = "w-full min-h-11 rounded-lg border border-black/20 px-3 bg-
 export function Head({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 flex-wrap mb-6">
-      <div>
-        <h1 className="font-display text-3xl font-bold">{title}</h1>
+      <div className="min-w-0">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold">{title}</h1>
         {sub && <p className="text-black/70 mt-1 max-w-2xl">{sub}</p>}
       </div>
-      <div className="flex gap-2 items-center flex-wrap">{children}</div>
+      <div className="flex gap-2 items-center flex-wrap w-full sm:w-auto max-sm:[&>*]:flex-1">{children}</div>
     </div>
   );
 }

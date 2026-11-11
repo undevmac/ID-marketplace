@@ -29,11 +29,12 @@ export default async function PagesHub() {
             <p className="text-sm text-black/60 mb-3">{g.note}</p>
             <ul className="space-y-2">
               {list.map((p) => (
-                <li key={p.slug} className={`${card} !p-3 flex items-center gap-2 flex-wrap`}>
-                  <div className="min-w-0 flex-1">
+                <li key={p.slug} className={`${card} !p-3 flex flex-wrap sm:flex-nowrap items-center gap-2`}>
+                  <div className="min-w-0 flex-1 basis-full sm:basis-0">
                     <p className="font-bold truncate">{p.title}</p>
                     <p className="text-xs text-black/60">/{p.slug === "home" ? "" : p.slug} · {p.published ? "live" : "draft"}{p.nav ? " · in menu" : ""}</p>
                   </div>
+                  <div className="grid grid-cols-3 gap-2 w-full sm:w-auto sm:flex sm:items-center">
                   <Link href={`/admin/pages/${p.slug}`} className={btnPrimary}>Edit</Link>
                   <Link href={p.slug === "home" ? "/" : `/${p.slug}`} target="_blank" className="min-h-11 px-3 grid place-items-center underline">View</Link>
                   <form action={removePage}>
@@ -41,6 +42,7 @@ export default async function PagesHub() {
                     <ConfirmButton className="min-h-11 px-3 underline text-red-700" label={p.origin === "custom" ? "Delete" : "Reset"}
                       message={p.origin === "custom" ? "Delete this page permanently?" : "Discard your edits and restore the original version of this page?"} />
                   </form>
+                  </div>
                 </li>
               ))}
             </ul>

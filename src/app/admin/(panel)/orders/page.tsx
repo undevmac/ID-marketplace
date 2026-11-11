@@ -19,12 +19,12 @@ export default async function Orders({ searchParams }: PageProps<"/admin/orders"
   if (status) q = q.eq("status", status);
   const { data } = await q;
   const orders = (data as unknown as Order[]) ?? [];
-  const chip = (on: boolean) => `min-h-11 px-4 inline-grid place-items-center rounded-full text-sm font-bold border ${on ? "bg-navy text-white border-navy" : "border-black/20 hover:bg-black/5"}`;
+  const chip = (on: boolean) => `shrink-0 whitespace-nowrap min-h-11 px-4 inline-grid place-items-center rounded-full text-sm font-bold border ${on ? "bg-navy text-white border-navy" : "border-black/20 hover:bg-black/5"}`;
 
   return (
     <>
       <Head title="Orders" sub="Order requests from customers, newest first. Final prices come from the catalogue at the time of the order." />
-      <div className="flex gap-2 flex-wrap mb-5">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap mb-5">
         <Link href="/admin/orders" className={chip(!status)}>All</Link>
         {ORDER_STATUSES.map(([v, l]) => <Link key={v} href={`/admin/orders?status=${v}`} className={chip(status === v)}>{l}</Link>)}
       </div>
