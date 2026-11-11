@@ -62,7 +62,7 @@ async function Tiles({ title, auto, tiles }: { title: string; auto: boolean; til
   const items = auto ? (await listCategories()).map((c) => ({ title: c.label, blurb: c.description, href: `/${c.slug}`, image: c.image, prop: c.is_prop ? "1" : "" })) : tiles;
   if (items.length === 0) return null;
   return (
-    <section className={`${W} pt-12`}>
+    <section id="categories" className={`${W} pt-12 scroll-mt-16`}>
       {title && <h2 className="reveal font-display text-3xl font-bold mb-6">{title}</h2>}
       <CategoryTiles tiles={items} />
     </section>

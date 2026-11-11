@@ -82,7 +82,8 @@ export function sanitizeBlocks(input: unknown): Block[] {
     const def = BLOCKS[(b as Block)?.type];
     if (!def) return [];
     const data = (b as Block).data ?? {};
-    return [{ id: String((b as Block).id ?? i).replace(/[^\w-]/g, "").slice(0, 20) || String(i), type: (b as Block).type, data: Object.fromEntries(def.fields.map((f) => [f.key, clean(f, data[f.key])])) }];
+    return [{ id: String((b as Block).id ?? i).replace(/[^\w-]/g, "").slice(0, 20) || String(i), type: (b as Block).type, // a field the saved block never had (added in a later update) takes its default, so old pages pick up new settings
+      data: Object.fromEntries(def.fields.map((f) => [f.key, data[f.key] === undefined ? def.def[f.key] ?? clean(f, "") : clean(f, data[f.key])])) }];
   });
 }
 
@@ -118,9 +119,9 @@ export const DEFAULT_PAGES: Page[] = [
     slug: "home", title: "Home", nav: false, published: true,
     blocks: [
       b("hero", { slides: [
-        { title: "Badges your team will actually wear", sub: "Staff ID cards printed on durable PVC, from 1 card.", cta: "Shop badges", href: "/staff-badges", image: "" },
-        { title: "Student IDs, ready for the term", sub: "Photo cards with student numbers, barcodes or QR.", cta: "Student IDs", href: "/student-ids", image: "" },
-        { title: "Props for film, games & cosplay", sub: "Fictional issuers. Always marked PROP – NOT A GOVERNMENT ID.", cta: "See props", href: "/prop-cards", image: "" },
+        { title: "Badges your team will actually wear", sub: "Staff ID cards printed on durable PVC, from 1 card.", cta: "Shop badges", href: "/#categories", image: "" },
+        { title: "Student IDs, ready for the term", sub: "Photo cards with student numbers, barcodes or QR.", cta: "Student IDs", href: "/#categories", image: "" },
+        { title: "Props for film, games & cosplay", sub: "Fictional issuers. Always marked PROP – NOT A GOVERNMENT ID.", cta: "See props", href: "/#categories", image: "" },
       ] }),
       b("ticker", { items: "Free proofs before print\nBulk discounts from 50 cards\nShips in 3–5 working days\nStaff badges\nStudent IDs\nVisitor passes\nProp cards (clearly marked)" }),
       b("categories", { title: "Shop by category", auto: "1" }),

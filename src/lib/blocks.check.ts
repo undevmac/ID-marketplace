@@ -47,4 +47,9 @@ assert.deepEqual(splitBrand("Acme Cards"), ["Acme ", "Cards"]);
 assert.deepEqual(splitBrand("My Big Shop"), ["My Big ", "Shop"]);
 assert.deepEqual(splitBrand("Acme"), ["Acme", ""]);
 assert.deepEqual(splitBrand("  Spaced Name  "), ["Spaced ", "Name"]);
+// pages saved before a setting existed pick up that setting's default (old home page -> tiles follow categories)
+const old = sanitizeBlocks([{ id: "c", type: "categories", data: { title: "Shop", tiles: [{ title: "Old tile", blurb: "", href: "/x", image: "" }] } }])[0];
+assert.equal(old.data.auto, "1", "missing auto setting defaults to on");
+const off = sanitizeBlocks([{ id: "c", type: "categories", data: { title: "Shop", auto: "", tiles: [] } }])[0];
+assert.equal(off.data.auto, "", "an explicit off is respected");
 console.log("blocks ok");
