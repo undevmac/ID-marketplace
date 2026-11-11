@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { logout } from "@/app/admin/actions";
 
 const LINKS = [
@@ -9,14 +10,14 @@ const LINKS = [
 ] as const;
 
 // Desktop: sidebar. Phone: slim top bar + fixed bottom tab bar (thumb-reachable, nothing cut off).
-export default function AdminNav() {
+export default function AdminNav({ brand }: { brand: ReactNode }) {
   const path = usePathname();
   const on = (h: string) => (h === "/admin" ? path === h : path === h || path.startsWith(h + "/"));
   return (
     <>
       <aside className="bg-navy text-white md:w-60 md:shrink-0 md:min-h-screen md:sticky md:top-0 md:h-screen md:flex md:flex-col">
         <div className="px-4 h-14 flex items-center justify-between md:block md:h-auto md:py-5">
-          <p className="font-display text-xl font-bold">Badge<span className="text-amber">Works</span> <span className="text-xs font-sans font-normal text-white/60 ml-1">admin</span></p>
+          <p className="font-display text-xl font-bold">{brand} <span className="text-xs font-sans font-normal text-white/60 ml-1">admin</span></p>
           <div className="flex items-center md:hidden">
             <a href="/" target="_blank" className="min-h-11 px-3 grid place-items-center text-sm">View site ↗</a>
             <form action={logout}><button className="min-h-11 px-3 text-sm underline">Log out</button></form>

@@ -5,6 +5,7 @@ import { db } from "./supabase";
 export type Field = { key: string; label: string; group: string; kind: "text" | "long" | "image"; def: string };
 
 export const FIELDS: Field[] = [
+  { key: "site_name", label: "Website name", group: "Website name", kind: "text", def: "BadgeWorks" },
   { key: "footer_text", label: "Footer text", group: "Footer", kind: "long", def: "We never produce government-issued identity documents." },
 ];
 

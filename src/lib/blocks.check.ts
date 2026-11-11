@@ -1,6 +1,7 @@
 // Run: node src/lib/blocks.check.ts   (fails loudly if validation regresses)
 import assert from "node:assert/strict";
 import { DEFAULT_PAGES, categoryPage, safeHref, sanitizeBlocks } from "./blocks.ts";
+import { splitBrand } from "./split-brand.ts";
 
 assert.equal(safeHref("javascript:alert(1)"), "");
 assert.equal(safeHref("//evil.com"), "");
@@ -40,4 +41,10 @@ for (const slug of ["lanyards", "prop-cards", "staff-badges"]) {
   assert.deepEqual(sanitizeBlocks(p.blocks), p.blocks, `category page ${slug} is valid`);
   assert.equal(p.blocks.find((b) => b.type === "products")!.data.category, slug, "page lists its own category");
 }
+// two-tone logo splitting for any site name
+assert.deepEqual(splitBrand("BadgeWorks"), ["Badge", "Works"]);
+assert.deepEqual(splitBrand("Acme Cards"), ["Acme ", "Cards"]);
+assert.deepEqual(splitBrand("My Big Shop"), ["My Big ", "Shop"]);
+assert.deepEqual(splitBrand("Acme"), ["Acme", ""]);
+assert.deepEqual(splitBrand("  Spaced Name  "), ["Spaced ", "Name"]);
 console.log("blocks ok");

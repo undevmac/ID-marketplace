@@ -1,7 +1,7 @@
 "use server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { admin, db } from "@/lib/supabase";
 import { COOKIE, getAdmin } from "@/lib/auth";
 import { FIELDS } from "@/lib/content";
@@ -33,9 +33,12 @@ export async function logout() {
 // ---------- settings ----------
 export async function saveContent(_: R, fd: FormData): Promise<R> {
   if (!(await getAdmin())) return EXPIRED;
-  const rows = FIELDS.filter((f) => fd.has(f.key)).map((f) => ({ key: f.key, value: s(fd, f.key).slice(0, 2000), updated_at: new Date().toISOString() }));
+  if (fd.has("site_name") && !s(fd, "site_name")) return { error: "The website name can't be empty." };
+  const rows = FIELDS.filter((f) => fd.has(f.key)).map((f) => ({ key: f.key, value: s(fd, f.key).slice(0, f.key === "site_name" ? 40 : 2000), updated_at: new Date().toISOString() }));
   const { error } = await admin().from("bw_content").upsert(rows);
-  return error ? { error: "Could not save." } : { msg: "Saved ✓" };
+  if (error) return { error: "Could not save." };
+  updateTag("site"); // refresh the cached site name everywhere
+  return { msg: "Saved ✓" };
 }
 
 // ---------- products ----------

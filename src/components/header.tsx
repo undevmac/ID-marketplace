@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useCart } from "./cart";
 
-export default function Header({ children }: { children?: ReactNode }) {
+export default function Header({ children, brand }: { children?: ReactNode; brand: ReactNode }) {
   const { lines, bump } = useCart();
   const count = lines.reduce((n, l) => n + l.qty, 0);
   const bar = useRef<HTMLDivElement>(null);
@@ -38,7 +38,7 @@ export default function Header({ children }: { children?: ReactNode }) {
     <header className={`sticky top-0 z-50 bg-navy text-white h-16 transition-shadow ${scrolled ? "shadow-lg" : ""}`}>
       <div ref={bar} className="absolute bottom-0 left-0 right-0 h-1 bg-amber origin-left" style={{ transform: "scaleX(0)" }} />
       <div className="max-w-6xl mx-auto h-full px-4 flex items-center justify-between">
-        <Link href="/" className="font-display text-xl font-bold min-h-11 flex items-center">Badge<span className="text-amber">Works</span></Link>
+        <Link href="/" className="font-display text-xl font-bold min-h-11 flex items-center">{brand}</Link>
         <nav className="flex items-center gap-1">
           {/* desktop: inline page links. mobile: dropdown (same links) */}
           <div className="hidden md:flex items-center">{children}</div>

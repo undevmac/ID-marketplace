@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import "./globals.css";
+import { getSiteName } from "@/lib/brand";
 
 const display = Bricolage_Grotesque({ variable: "--font-display", subsets: ["latin"] });
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "BadgeWorks – ID cards & badges for organizations",
-  description: "Custom printed staff badges, student ID cards and visitor passes. Plus clearly-marked prop cards for film, games and cosplay.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const name = await getSiteName();
+  return {
+    title: { default: `${name} – ID cards & badges for organizations`, template: `%s | ${name}` },
+    description: "Custom printed staff badges, student ID cards and visitor passes. Plus clearly-marked prop cards for film, games and cosplay.",
+  };
+}
 
 // Bare shell only. Storefront chrome lives in (site)/layout.tsx, admin chrome in admin/(panel)/layout.tsx.
 export default function RootLayout({ children }: LayoutProps<"/">) {

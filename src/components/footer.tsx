@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getContent } from "@/lib/content";
 import { getNav } from "@/lib/pages";
+import Brand from "./brand";
 
 export default async function Footer() {
   const [c, nav] = await Promise.all([getContent(), getNav()]);
@@ -14,7 +15,7 @@ export default async function Footer() {
       </div>
       <div className="bg-navy text-white/80 py-10 px-4 text-sm">
         <div className="max-w-6xl mx-auto space-y-4">
-          <p className="font-display text-xl text-white">BadgeWorks</p>
+          <p className="font-display text-xl text-white"><Brand /></p>
           <nav className="flex flex-wrap gap-x-5">
             {nav.map((p) => <Link key={p.slug} href={`/${p.slug}`} className="min-h-11 flex items-center underline-offset-4 hover:underline">{p.title}</Link>)}
           </nav>
