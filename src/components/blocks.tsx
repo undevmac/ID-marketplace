@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { db, money, type Product } from "@/lib/supabase";
+import { listCategories } from "@/lib/categories";
 import type { Block, Item } from "@/lib/blocks";
 import A from "./a";
 import Hero from "./hero";
@@ -56,6 +57,18 @@ async function ProductGrid({ title, category }: { title: string; category: strin
   );
 }
 
+// Automatic mode lists every category from the database, so adding a category in the admin adds a tile.
+async function Tiles({ title, auto, tiles }: { title: string; auto: boolean; tiles: Item[] }) {
+  const items = auto ? (await listCategories()).map((c) => ({ title: c.label, blurb: c.description, href: `/${c.slug}`, image: c.image, prop: c.is_prop ? "1" : "" })) : tiles;
+  if (items.length === 0) return null;
+  return (
+    <section className={`${W} pt-12`}>
+      {title && <h2 className="reveal font-display text-3xl font-bold mb-6">{title}</h2>}
+      <CategoryTiles tiles={items} />
+    </section>
+  );
+}
+
 function One({ b }: { b: Block }) {
   const d = b.data;
   switch (b.type) {
@@ -70,12 +83,7 @@ function One({ b }: { b: Block }) {
       );
     }
     case "categories":
-      return (
-        <section className={`${W} pt-12`}>
-          {s(d.title) && <h2 className="reveal font-display text-3xl font-bold mb-6">{s(d.title)}</h2>}
-          <CategoryTiles tiles={list(d.tiles)} />
-        </section>
-      );
+      return <Tiles title={s(d.title)} auto={!!s(d.auto)} tiles={list(d.tiles)} />;
     case "products":
       return <ProductGrid title={s(d.title)} category={s(d.category) || "all"} />;
     case "text":

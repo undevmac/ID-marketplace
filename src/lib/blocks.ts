@@ -2,14 +2,9 @@
 export type Item = Record<string, string>;
 export type Data = Record<string, string | Item[]>;
 export type Block = { id: string; type: string; data: Data };
-export type Page = { slug: string; title: string; nav: boolean; published: boolean; blocks: Block[] };
-export type F = { key: string; label: string; kind: "text" | "long" | "image" | "link" | "select" | "check" | "list"; options?: string[]; item?: F[] };
+export type Page = { slug: string; title: string; nav: boolean; published: boolean; blocks: Block[]; origin?: "builtin" | "category" | "custom" };
+export type F = { key: string; label: string; kind: "text" | "long" | "image" | "link" | "select" | "check" | "list" | "category"; options?: string[]; item?: F[] };
 
-export const CATEGORIES: [slug: string, label: string][] = [
-  ["staff-badges", "Staff badges"], ["student-ids", "Student IDs"], ["visitor-passes", "Visitor passes"],
-  ["event-badges", "Event badges"], ["prop-cards", "Prop cards"],
-];
-export const PROP_CATEGORY = "prop-cards"; // products here always get the PROP watermark
 export const RESERVED = ["admin", "cart", "order", "products", "api", "login", "_next"];
 
 const t = (key: string, label: string): F => ({ key, label, kind: "text" });
@@ -26,12 +21,16 @@ export const BLOCKS: Record<string, { label: string; fields: F[]; def: Data }> =
   ticker: { label: "Scrolling banner", fields: [l("items", "Messages (one per line)")], def: { items: "Free proofs before print\nShips in 3–5 working days" } },
   categories: {
     label: "Category tiles",
-    fields: [t("title", "Title"), { key: "tiles", label: "Tiles", kind: "list", item: [t("title", "Name"), l("blurb", "Short text"), link("href", "Link"), img("image", "Image (optional)")] }],
-    def: { title: "Shop by category", tiles: [{ title: "Category", blurb: "", href: "/", image: "" }] },
+    fields: [
+      t("title", "Title"),
+      { key: "auto", label: "Fill automatically from my categories", kind: "check" },
+      { key: "tiles", label: "Custom tiles (used only when automatic is off)", kind: "list", item: [t("title", "Name"), l("blurb", "Short text"), link("href", "Link"), img("image", "Image (optional)")] },
+    ],
+    def: { title: "Shop by category", auto: "1", tiles: [] },
   },
   products: {
     label: "Product grid",
-    fields: [t("title", "Title"), { key: "category", label: "Show products from", kind: "select", options: ["all", ...CATEGORIES.map((c) => c[0])] }],
+    fields: [t("title", "Title"), { key: "category", label: "Show products from", kind: "category" }],
     def: { title: "Products", category: "all" },
   },
   text: {
@@ -73,6 +72,7 @@ const clean = (f: F, v: unknown): string | Item[] => {
   if (f.kind === "link") return safeHref(s);
   if (f.kind === "select") return f.options!.includes(s) ? s : f.options![0];
   if (f.kind === "check") return s ? "1" : "";
+  if (f.kind === "category") return /^(all|[a-z0-9-]{1,40})$/.test(s) ? s : "all";
   return s;
 };
 
@@ -90,12 +90,25 @@ export function sanitizeBlocks(input: unknown): Block[] {
 let n = 0;
 const b = (type: string, data: Data): Block => ({ id: `${type}-${++n}`, type, data: { ...structuredClone(BLOCKS[type].def), ...data } });
 
-const catPage = (slug: string, title: string, sub: string, faq: Item[]): Page => ({
-  slug, title, nav: true, published: true,
+// Starter copy for the original five categories; any new category gets the generic version.
+const CATEGORY_FAQ: Record<string, Item[]> = {
+  "staff-badges": [{ q: "Can I add a photo?", a: "Yes. Send photos with your order notes and we place them on the proof." }, { q: "Is there a minimum order?", a: "No. Order a single card or thousands." }],
+  "student-ids": [{ q: "Can you add barcodes?", a: "Yes, barcode, QR or magnetic stripe." }],
+  "visitor-passes": [{ q: "How many are in a pack?", a: "Packs are 50 passes; larger quantities on request." }],
+  "event-badges": [{ q: "What is the minimum?", a: "25 badges." }],
+  "prop-cards": [
+    { q: "Are prop cards real IDs?", a: "No. They are novelty items from fictional organisations and carry a permanent PROP – NOT A GOVERNMENT ID mark." },
+    { q: "Can I order a card that copies a real document?", a: "No. We do not produce replicas of government-issued documents." },
+  ],
+};
+
+// Every category automatically gets this page at /<slug>. Editing it saves a copy that overrides this.
+export const categoryPage = (c: { slug: string; label: string; description: string }): Page => ({
+  slug: c.slug, title: c.label, nav: true, published: true,
   blocks: [
-    b("banner", { heading: title, sub, size: "short", wave: "1" }),
-    b("products", { title: `All ${title.toLowerCase()}`, category: slug }),
-    b("faq", { title: "Good to know", items: faq }),
+    b("banner", { heading: c.label, sub: c.description, size: "short", wave: "1" }),
+    b("products", { title: `All ${c.label.toLowerCase()}`, category: c.slug }),
+    b("faq", { title: "Good to know", items: CATEGORY_FAQ[c.slug] ?? [{ q: "Can I order a custom quantity?", a: "Yes. Add the quantity in your order notes and we'll confirm the price." }] }),
     b("cta", { heading: "Need a custom quantity or design?", body: "Tell us what you need in your order notes and we'll send a free proof.", cta: "Start an order", href: "/cart" }),
   ],
 });
@@ -110,27 +123,11 @@ export const DEFAULT_PAGES: Page[] = [
         { title: "Props for film, games & cosplay", sub: "Fictional issuers. Always marked PROP – NOT A GOVERNMENT ID.", cta: "See props", href: "/prop-cards", image: "" },
       ] }),
       b("ticker", { items: "Free proofs before print\nBulk discounts from 50 cards\nShips in 3–5 working days\nStaff badges\nStudent IDs\nVisitor passes\nProp cards (clearly marked)" }),
-      b("categories", { title: "Shop by category", tiles: [
-        { title: "Staff badges", blurb: "Durable PVC ID cards", href: "/staff-badges", image: "" },
-        { title: "Student IDs", blurb: "Photo cards with barcodes", href: "/student-ids", image: "" },
-        { title: "Visitor passes", blurb: "Packs with lanyards", href: "/visitor-passes", image: "" },
-        { title: "Event badges", blurb: "Lanyard badges for events", href: "/event-badges", image: "" },
-        { title: "Prop cards", blurb: "Fictional, clearly marked", href: "/prop-cards", image: "" },
-      ] }),
+      b("categories", { title: "Shop by category", auto: "1" }),
       b("products", { title: "Popular right now", category: "all" }),
       b("banner", { heading: "Proof first, print second", sub: "Every order gets a free digital proof before we print a single card.", cta: "How it works", href: "/how-it-works", size: "tall", wave: "1" }),
       b("cta", { heading: "Equip your whole team", body: "Order one card or a thousand.", cta: "Start an order", href: "/cart" }),
     ],
-  },
-  catPage("staff-badges", "Staff badges", "Durable PVC ID cards for your team.", [{ q: "Can I add a photo?", a: "Yes. Send photos with your order notes and we place them on the proof." }, { q: "Is there a minimum order?", a: "No. Order a single card or thousands." }]),
-  catPage("student-ids", "Student IDs", "Photo cards with student numbers, barcodes or QR.", [{ q: "Can you add barcodes?", a: "Yes, barcode, QR or magnetic stripe." }]),
-  catPage("visitor-passes", "Visitor passes", "Packs of printed passes with lanyards.", [{ q: "How many are in a pack?", a: "Packs are 50 passes; larger quantities on request." }]),
-  catPage("event-badges", "Event badges", "Lanyard badges for conferences and events.", [{ q: "What is the minimum?", a: "25 badges." }]),
-  {
-    ...catPage("prop-cards", "Prop cards", "For film, games and cosplay. Fictional issuers, always marked.", [
-      { q: "Are prop cards real IDs?", a: "No. They are novelty items from fictional organisations and carry a permanent PROP – NOT A GOVERNMENT ID mark." },
-      { q: "Can I order a card that copies a real document?", a: "No. We do not produce replicas of government-issued documents." },
-    ]),
   },
   {
     slug: "about", title: "About", nav: true, published: true,
@@ -165,4 +162,3 @@ export const DEFAULT_PAGES: Page[] = [
     ],
   },
 ];
-export const DEFAULTS = Object.fromEntries(DEFAULT_PAGES.map((p) => [p.slug, p]));

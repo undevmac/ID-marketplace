@@ -30,7 +30,7 @@ export default function CategoryTiles({ tiles }: { tiles: Item[] }) {
           {t.image
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={t.image} alt="" loading="lazy" className="w-full aspect-[1.586] object-cover rounded-xl" />
-            : <CardArt p={{ name: t.title, kind: /prop/.test(t.href) ? "prop" : "badge" }} />}
+            : <CardArt p={{ name: t.title, kind: t.prop ? "prop" : "badge" }} />}
           <h3 className="font-display font-bold mt-3">{t.title}</h3>
           <p className="text-sm text-black/60">{t.blurb}</p>
           <span data-glare aria-hidden className="pointer-events-none absolute -inset-1/2 opacity-0 transition-opacity duration-200"

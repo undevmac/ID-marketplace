@@ -12,10 +12,13 @@ type V = string | Item[];
 const blank = (f: F): Item => Object.fromEntries((f.item ?? []).map((x) => [x.key, ""]));
 const move = <T,>(a: T[], i: number, d: number) => { const j = i + d; if (j < 0 || j >= a.length) return a; const c = [...a]; [c[i], c[j]] = [c[j], c[i]]; return c; };
 
-function Field({ f, value, onChange }: { f: F; value: V; onChange: (v: V) => void }) {
+type Cats = [slug: string, label: string][];
+
+function Field({ f, value, onChange, cats }: { f: F; value: V; onChange: (v: V) => void; cats: Cats }) {
   const str = typeof value === "string" ? value : "";
   if (f.kind === "image") return <ImageInput label={f.label} value={str} onChange={onChange} />;
   if (f.kind === "check") return <label className="flex items-center gap-2 min-h-11 font-medium"><input type="checkbox" className="size-5" checked={!!str} onChange={(e) => onChange(e.target.checked ? "1" : "")} />{f.label}</label>;
+  if (f.kind === "category") return <label className="block font-medium">{f.label}<select className={input} value={str} onChange={(e) => onChange(e.target.value)}><option value="all">All products</option>{cats.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></label>;
   if (f.kind === "select") return <label className="block font-medium">{f.label}<select className={input} value={str} onChange={(e) => onChange(e.target.value)}>{f.options!.map((o) => <option key={o}>{o}</option>)}</select></label>;
   if (f.kind === "long") return <label className="block font-medium">{f.label}<textarea rows={3} className={`${input} py-2`} value={str} onChange={(e) => onChange(e.target.value)} /></label>;
   if (f.kind === "list") {
@@ -31,7 +34,7 @@ function Field({ f, value, onChange }: { f: F; value: V; onChange: (v: V) => voi
               <button type="button" className={btn} aria-label="Move down" disabled={i === items.length - 1} onClick={() => set(move(items, i, 1))}>↓</button>
               <button type="button" className={btn} aria-label="Remove item" onClick={() => set(items.filter((_, j) => j !== i))}>✕</button>
             </div>
-            {f.item!.map((sf) => <Field key={sf.key} f={sf} value={it[sf.key] ?? ""} onChange={(v) => set(items.map((x, j) => (j === i ? { ...x, [sf.key]: v as string } : x)))} />)}
+            {f.item!.map((sf) => <Field key={sf.key} f={sf} cats={cats} value={it[sf.key] ?? ""} onChange={(v) => set(items.map((x, j) => (j === i ? { ...x, [sf.key]: v as string } : x)))} />)}
           </div>
         ))}
         <button type="button" className="min-h-11 px-4 rounded-full border border-black/30 font-bold" onClick={() => set([...items, blank(f)])}>+ Add item</button>
@@ -41,7 +44,7 @@ function Field({ f, value, onChange }: { f: F; value: V; onChange: (v: V) => voi
   return <label className="block font-medium">{f.label}<input className={input} value={str} placeholder={f.kind === "link" ? "/page, https://… or mailto:…" : ""} onChange={(e) => onChange(e.target.value)} /></label>;
 }
 
-export default function PageEditor({ initial }: { initial: { slug: string; title: string; nav: boolean; published: boolean; blocks: Block[] } }) {
+export default function PageEditor({ initial, cats }: { initial: { slug: string; title: string; nav: boolean; published: boolean; blocks: Block[] }; cats: Cats }) {
   const [title, setTitle] = useState(initial.title);
   const [nav, setNav] = useState(initial.nav);
   const [published, setPublished] = useState(initial.published);
@@ -84,7 +87,7 @@ export default function PageEditor({ initial }: { initial: { slug: string; title
               </span>
             </summary>
             <div className="space-y-4 pt-4">
-              {BLOCKS[b.type].fields.map((f) => <Field key={f.key} f={f} value={b.data[f.key] ?? ""} onChange={(v) => setData(i, f.key, v)} />)}
+              {BLOCKS[b.type].fields.map((f) => <Field key={f.key} f={f} cats={cats} value={b.data[f.key] ?? ""} onChange={(v) => setData(i, f.key, v)} />)}
             </div>
           </details>
         ))}
@@ -98,12 +101,12 @@ export default function PageEditor({ initial }: { initial: { slug: string; title
 
         <div className="fixed bottom-0 inset-x-0 lg:static bg-white/95 lg:bg-transparent p-3 lg:p-0 shadow-[0_-4px_12px_#0001] lg:shadow-none flex items-center gap-3 flex-wrap z-40">
           <button onClick={save} disabled={pending} className="min-h-12 px-8 rounded-full bg-navy text-white font-bold disabled:opacity-60">{pending ? "Saving…" : "Save"}</button>
-          <Link href="/admin" className="underline min-h-11 grid place-items-center">Back</Link>
+          <Link href="/admin/pages" className="underline min-h-11 grid place-items-center">Back to pages</Link>
           {msg && <span role="status" className={msg.ok ? "text-green-700 font-bold" : "text-red-700 font-bold"}>{msg.t}</span>}
         </div>
       </div>
 
-      <aside className="hidden lg:block sticky top-20">
+      <aside className="hidden lg:block sticky top-4">
         <div className="flex items-center justify-between mb-2"><span className="font-bold">Live preview</span><a href={url} target="_blank" className="underline text-sm">Open page ↗</a></div>
         <iframe key={ver} src={url} title="Page preview" className="w-full h-[78vh] rounded-2xl border bg-white" />
         <p className="text-xs text-black/60 mt-1">Shows the saved version. Press Save to update it.</p>

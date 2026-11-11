@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useCart } from "@/components/cart";
 import { money } from "@/lib/supabase";
-import { placeOrder } from "../actions";
+import { placeOrder } from "@/app/actions";
 
 const field = "w-full min-h-11 rounded-lg border border-black/20 px-3 bg-white";
 // Green tick appears once the field inside is valid (and has been touched).

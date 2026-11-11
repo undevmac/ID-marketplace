@@ -65,3 +65,16 @@ export function ImageField({ name, label, defaultValue }: { name: string; label:
 export function ConfirmButton({ label, message, className = "" }: { label: string; message: string; className?: string }) {
   return <button className={className} onClick={(e) => { if (!confirm(message)) e.preventDefault(); }}>{label}</button>;
 }
+
+// Delete with confirmation and an inline error (e.g. "category still has products").
+export function DeleteForm({ action, name, value, label = "Delete", message }: { action: (s: State, fd: FormData) => Promise<State>; name: string; value: string; label?: string; message: string }) {
+  const [state, run, pending] = useActionState(action, undefined);
+  return (
+    <form action={run} className="flex items-center gap-3 flex-wrap">
+      <input type="hidden" name={name} value={value} />
+      <button disabled={pending} onClick={(e) => { if (!confirm(message)) e.preventDefault(); }} className="min-h-11 px-5 rounded-full border border-red-300 text-red-700 font-bold hover:bg-red-50 disabled:opacity-60">{pending ? "Deleting…" : label}</button>
+      {state?.error && <span role="alert" className="text-red-700 text-sm max-w-md">{state.error}</span>}
+      {state?.msg && <span role="status" className="text-green-700 text-sm font-bold">{state.msg}</span>}
+    </form>
+  );
+}

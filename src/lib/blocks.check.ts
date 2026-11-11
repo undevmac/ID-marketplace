@@ -1,6 +1,6 @@
 // Run: node src/lib/blocks.check.ts   (fails loudly if validation regresses)
 import assert from "node:assert/strict";
-import { DEFAULT_PAGES, safeHref, sanitizeBlocks } from "./blocks.ts";
+import { DEFAULT_PAGES, categoryPage, safeHref, sanitizeBlocks } from "./blocks.ts";
 
 assert.equal(safeHref("javascript:alert(1)"), "");
 assert.equal(safeHref("//evil.com"), "");
@@ -28,4 +28,16 @@ assert.equal(sanitizeBlocks(Array.from({ length: 100 }, () => ({ type: "text", d
 
 // every built-in page must survive its own validation unchanged
 for (const p of DEFAULT_PAGES) assert.deepEqual(sanitizeBlocks(p.blocks), p.blocks, `default page ${p.slug} is valid`);
+// category page filter: valid slug kept, anything else falls back to "all"
+const pf = (category: string) => sanitizeBlocks([{ id: "p", type: "products", data: { category } }])[0].data.category;
+assert.equal(pf("lanyards"), "lanyards");
+assert.equal(pf("../x"), "all");
+assert.equal(pf("<script>"), "all");
+
+// auto-generated pages for any category (including brand-new ones) must also be valid
+for (const slug of ["lanyards", "prop-cards", "staff-badges"]) {
+  const p = categoryPage({ slug, label: "Label", description: "d" });
+  assert.deepEqual(sanitizeBlocks(p.blocks), p.blocks, `category page ${slug} is valid`);
+  assert.equal(p.blocks.find((b) => b.type === "products")!.data.category, slug, "page lists its own category");
+}
 console.log("blocks ok");
